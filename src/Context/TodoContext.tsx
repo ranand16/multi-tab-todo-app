@@ -27,13 +27,13 @@ export const TodoContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [dbManager]);
 
   useEffect(() => {
-    console.log("initializing DB now!!")
-    initializeDB();
+      console.log("initializing DB now!!")
+      initializeDB();
+
     return () => {
       dbManager.close();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initializeDB]);
+  }, [dbManager, initializeDB]);
 
   const loadTodosFromDB = useCallback(async () => {
     try {
@@ -49,7 +49,6 @@ export const TodoContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       await dbManager.add(newTodo);
       await loadTodosFromDB();
       localStorage.setItem('todoUpdated', Date.now().toString());
-      // notifyServiceWorker();
     } catch (error) {
       console.error('Error adding todo:', error);
     }
@@ -102,29 +101,22 @@ export const TodoContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // }
 
     const handleStorageChange = (event: StorageEvent) => {
-      console.log("🚀 ~ handleStorageChange ~ event:", event)
       if (event.key === 'todoUpdated' && event.oldValue !== event.newValue) {
-        const shouldUpdate = window.confirm(
-          "New todo added in another tab. Refresh to update your list?"
-        );
-        if (shouldUpdate) {
+      //   const shouldUpdate = window.confirm(
+      //     "New todo added in another tab. Refresh to update your list?"
+      //   );
+      //   if (shouldUpdate) {
           loadTodosFromDB();
-        }
+      //   }
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      // if ('serviceWorker' in navigator) {
-      //   navigator.serviceWorker.removeEventListener(
-      //     'message',
-      //     handleServiceWorkerMessage,
-      //   );
-      // }
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [loadTodosFromDB, dbManager, addTodoToDB]);
+  }, [loadTodosFromDB]);
 
   const contextValue = {
     todos,
